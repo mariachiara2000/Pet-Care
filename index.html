@@ -7,27 +7,18 @@
 <style>
 body{font-family:Arial;background:#f6f7fb;padding:20px}
 .card{background:#fff;padding:16px;border-radius:18px;margin-bottom:16px}
-button{padding:8px 12px;border:none;border-radius:10px;background:#ff9aa2;color:#fff;margin:4px}
-.pet-area{display:flex;justify-content:center;gap:40px;align-items:flex-end}
+button{padding:10px;border:none;border-radius:12px;background:#ff9aa2;color:#fff;margin:4px}
+.pet-area{display:flex;justify-content:center;gap:30px;align-items:flex-end}
 .pet{font-size:90px;position:relative}
 .accessory{position:absolute;top:-10px;left:50%;transform:translateX(-50%)}
 .egg{font-size:40px}
 .hidden{display:none}
+.progress{background:#ddd;height:10px;border-radius:10px;overflow:hidden;margin-top:4px}
+.progress-bar{height:100%;background:#ff9aa2}
 .inventory-item{border-bottom:1px solid #ddd;padding:6px}
 .small{font-size:12px;color:#666}
-.progress{background:#ddd;height:14px;border-radius:10px;overflow:hidden}
-.progress-bar{height:100%;background:#ff9aa2}
-#foodAnimEl{
-  position:absolute;
-  bottom:-20px;
-  font-size:30px;
-  animation:jump 0.8s;
-}
-@keyframes jump{
-  0%{transform:translateY(0)}
-  50%{transform:translateY(-20px)}
-  100%{transform:translateY(0)}
-}
+#foodAnimEl{position:absolute;bottom:-20px;font-size:28px;animation:jump .8s}
+@keyframes jump{0%{transform:translateY(0)}50%{transform:translateY(-20px)}100%{transform:translateY(0)}}
 .glow{text-shadow:0 0 8px gold}
 </style>
 </head>
@@ -64,13 +55,21 @@ button{padding:8px 12px;border:none;border-radius:10px;background:#ff9aa2;color:
 
 <div class="card">
 ⭐ Pontos: <span id="pointsEl">0</span>
-<button onclick="getEgg()">🥚 Conseguir ovo</button>
 </div>
 
+<!-- CUIDADOS -->
 <div class="card">
-❤️ Carinho
+<button onclick="care('food')">🍽️</button>
+<button onclick="care('water')">💧</button>
+<button onclick="care('bath')">🚿</button>
+<button onclick="care('sleep')">😴</button>
+<button onclick="care('love')">❤️</button>
+
+<div class="progress"><div id="foodBar" class="progress-bar"></div></div>
+<div class="progress"><div id="waterBar" class="progress-bar"></div></div>
+<div class="progress"><div id="bathBar" class="progress-bar"></div></div>
+<div class="progress"><div id="sleepBar" class="progress-bar"></div></div>
 <div class="progress"><div id="loveBar" class="progress-bar"></div></div>
-<button onclick="giveLove()">❤️ Dar carinho</button>
 </div>
 
 <div class="card">
@@ -80,15 +79,15 @@ button{padding:8px 12px;border:none;border-radius:10px;background:#ff9aa2;color:
 
 <div class="card">
 <h3>🛍️ Loja</h3>
-<button onclick="buy('🎀',50)">🎀 50⭐</button>
-<button onclick="buy('🧸',70)">🧸 70⭐</button>
-<button onclick="buy('⭐️',100)">⭐️ 100⭐</button><br>
+<button onclick="buy('🎀',50)">🎀</button>
+<button onclick="buy('🧸',70)">🧸</button>
+<button onclick="buy('⭐️',100)">⭐️</button><br>
 <button onclick="buy('🍎',10)">🍎</button>
 <button onclick="buy('🍐',10)">🍐</button>
 <button onclick="buy('🍊',10)">🍊</button>
 <button onclick="buy('🍋',10)">🍋</button>
 <button onclick="buy('🍏',10)">🍏</button>
-<p class="small">🍎🍐🍊🍋🍏 = comida decorativa</p>
+<p class="small">🍎🍐🍊🍋🍏 = decorativo</p>
 </div>
 
 </div>
@@ -100,10 +99,10 @@ let babyPet=localStorage.getItem("babyPet");
 
 let points=Number(localStorage.getItem("points"))||100;
 let love=Number(localStorage.getItem("love"))||70;
+let food=60,water=60,bath=60,sleepLv=60;
 
 let accessories=JSON.parse(localStorage.getItem("accessories"))||{};
 let rareAccessory=localStorage.getItem("rareAccessory")||"";
-
 let egg=JSON.parse(localStorage.getItem("egg"))||null;
 let crying=true;
 let lastToyUse=0;
@@ -122,40 +121,43 @@ setInterval(gameTick,1000);
 }
 
 function gameTick(){
-love=Math.max(0,love-0.05);
+food-=0.05;water-=0.06;bath-=0.04;sleepLv-=0.03;love-=0.02;
+food=Math.max(0,food);water=Math.max(0,water);bath=Math.max(0,bath);sleepLv=Math.max(0,sleepLv);love=Math.max(0,love);
 if(rareAccessory) love=Math.min(100,love+0.02);
 updateEgg();
 update();
 }
 
-function getEgg(){
-if(egg){alert("Você já tem um ovo");return;}
-let r=Math.random(),type,time;
-if(r<0.6){type="🥚";time=5*60*1000;}
-else if(r<0.9){type="✨🥚";time=60*60*1000;}
-else{type="🌈🥚";time=5*60*60*1000;}
-egg={type,start:Date.now(),time};
+function care(type){
+let ok=false;
+if(type==="food"&&food<80){food+=20;ok=true}
+if(type==="water"&&water<80){water+=20;ok=true}
+if(type==="bath"&&bath<80){bath+=30;ok=true}
+if(type==="sleep"&&sleepLv<80){sleepLv+=30;ok=true}
+if(type==="love"&&love<80){love+=25;ok=true}
+
+if(ok){
+points+=5;
+if(Math.random()<0.15&&!egg){
+egg={type:"🥚",start:Date.now(),time:5*60*1000};
 crying=true;
+}
+}
 update();
 }
 
 function updateEgg(){
 if(!egg)return;
-if(Date.now()-egg.start>=egg.time) crying=false;
-renderInventory();
+if(Date.now()-egg.start>=egg.time)crying=false;
 }
 
 function hatch(){
-if(Date.now()-egg.start<egg.time){alert("Ainda não chocou");return;}
+if(!egg)return;
+if(Date.now()-egg.start<egg.time){alert("Ainda não");return;}
 let available=pets.filter(p=>p!==mainPet);
 babyPet=available[Math.floor(Math.random()*available.length)];
 egg=null;
 save();
-update();
-}
-
-function giveLove(){
-if(love<90){love+=20;points+=5;}
 update();
 }
 
@@ -169,32 +171,22 @@ setTimeout(()=>foodAnimEl.innerText="",800);
 }
 else if(item==="🧸"){
 let now=Date.now();
-if(now-lastToyUse>60000){
-love=Math.min(100,love+10);
-lastToyUse=now;
-accessories[mainPet]="🧸";
+if(now-lastToyUse>60000){love=Math.min(100,love+10);lastToyUse=now;accessories[mainPet]="🧸";}
 }
-}
-else if(item==="🎀"){
-accessories[mainPet]="🎀";
-}
+else if(item==="🎀"){accessories[mainPet]="🎀"}
 else if(item==="⭐️"){
 let r=Math.random();
-if(r<0.3){rareAccessory="✨🎀";}
-else if(r<0.6){points+=50;}
+if(r<0.3)rareAccessory="✨🎀";
+else if(r<0.6)points+=50;
 }
-save();update();
+update();
 }
 
 function renderInventory(){
 inventory.innerHTML="";
 if(egg){
 let left=Math.ceil((egg.time-(Date.now()-egg.start))/1000);
-inventory.innerHTML=`
-<div class="inventory-item">
-${egg.type} ⏳ ${left}s
-<button onclick="hatch()">Chocar</button>
-</div>`;
+inventory.innerHTML=`<div class="inventory-item">${egg.type} ⏳ ${left}s <button onclick="hatch()">Chocar</button></div>`;
 }
 }
 
@@ -205,6 +197,10 @@ mainAcc.innerText=rareAccessory||accessories[mainPet]||"";
 mainAcc.classList.toggle("glow",!!rareAccessory);
 babyAcc.innerText=accessories[babyPet]||"";
 pointsEl.innerText=points;
+foodBar.style.width=food+"%";
+waterBar.style.width=water+"%";
+bathBar.style.width=bath+"%";
+sleepBar.style.width=sleepLv+"%";
 loveBar.style.width=love+"%";
 cryingEgg.classList.toggle("hidden",!egg||!crying);
 renderInventory();
