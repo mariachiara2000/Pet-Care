@@ -5,72 +5,30 @@
 <title>PetCare 🐾</title>
 
 <style>
-body {
-  font-family: Arial, sans-serif;
-  background:#f6f7fb;
-  padding:20px;
-}
-
-.hidden{display:none;}
-
-.card{
-  background:#fff;
-  padding:16px;
-  border-radius:18px;
-  margin-bottom:16px;
-}
-
-button{
-  padding:10px 14px;
-  border:none;
-  border-radius:12px;
-  background:#ff9aa2;
-  color:#fff;
-  margin:4px;
-}
-
-.progress{
-  background:#ddd;
-  height:14px;
-  border-radius:10px;
-  overflow:hidden;
-}
-
-.progress-bar{
-  height:100%;
-  background:#8ed1fc;
-}
-
-.pet-box{
-  text-align:center;
-  position:relative;
-}
-
-.pet{
-  transition:0.4s;
-}
-
-.grow{
-  animation:grow 0.6s;
-}
-
-@keyframes grow{
-  0%{transform:scale(1)}
-  50%{transform:scale(1.3)}
-  100%{transform:scale(1)}
-}
-
-.glow{
-  text-shadow:0 0 12px gold;
-}
-
-.accessory{
+body{font-family:Arial;background:#f6f7fb;padding:20px}
+.card{background:#fff;padding:16px;border-radius:18px;margin-bottom:16px}
+button{padding:8px 12px;border:none;border-radius:10px;background:#ff9aa2;color:#fff;margin:4px}
+.pet-area{display:flex;justify-content:center;gap:40px;align-items:flex-end}
+.pet{font-size:90px;position:relative}
+.accessory{position:absolute;top:-10px;left:50%;transform:translateX(-50%)}
+.egg{font-size:40px}
+.hidden{display:none}
+.inventory-item{border-bottom:1px solid #ddd;padding:6px}
+.small{font-size:12px;color:#666}
+.progress{background:#ddd;height:14px;border-radius:10px;overflow:hidden}
+.progress-bar{height:100%;background:#ff9aa2}
+#foodAnimEl{
   position:absolute;
-  top:-5px;
-  left:50%;
-  transform:translateX(-50%);
-  font-size:24px;
+  bottom:-20px;
+  font-size:30px;
+  animation:jump 0.8s;
 }
+@keyframes jump{
+  0%{transform:translateY(0)}
+  50%{transform:translateY(-20px)}
+  100%{transform:translateY(0)}
+}
+.glow{text-shadow:0 0 8px gold}
 </style>
 </head>
 
@@ -78,158 +36,189 @@ button{
 
 <!-- SETUP -->
 <div id="setup" class="card hidden">
-<h2>🐣 Escolha seu pet</h2>
+<h2>Escolha seu pet</h2>
 <button onclick="choosePet('🐶')">🐶</button>
 <button onclick="choosePet('🐱')">🐱</button>
 <button onclick="choosePet('🐰')">🐰</button>
-<button onclick="choosePet('🐣')">🐣</button>
-<br><br>
-<button onclick="startGame()">Começar</button>
+<button onclick="choosePet('🐣')">🐣</button><br><br>
+<button onclick="start()">Começar</button>
 </div>
 
 <!-- APP -->
 <div id="app" class="hidden">
 
-<div class="card pet-box">
-  <div id="accessoryEl" class="accessory"></div>
-  <div id="petEmoji" class="pet"></div>
-  <div>🧬 Nível <span id="levelEl">1</span></div>
-  ⭐ <span id="pointsEl">0</span> | 🥚 <span id="eggsEl">0</span>
+<div class="card pet-area">
+  <div class="pet">
+    <div id="mainPetEl"></div>
+    <div id="mainAcc" class="accessory"></div>
+    <div id="foodAnimEl"></div>
+  </div>
+
+  <div id="cryingEgg" class="egg hidden">🥚😢</div>
+
+  <div class="pet">
+    <div id="babyPetEl"></div>
+    <div id="babyAcc" class="accessory"></div>
+  </div>
 </div>
 
 <div class="card">
-🍖 <div class="progress"><div id="foodBar" class="progress-bar"></div></div>
-💧 <div class="progress"><div id="waterBar" class="progress-bar"></div></div>
-🛁 <div class="progress"><div id="cleanBar" class="progress-bar"></div></div>
-😴 <div class="progress"><div id="sleepBar" class="progress-bar"></div></div>
+⭐ Pontos: <span id="pointsEl">0</span>
+<button onclick="getEgg()">🥚 Conseguir ovo</button>
 </div>
 
 <div class="card">
-<button onclick="care('food')">🍖</button>
-<button onclick="care('water')">💧</button>
-<button onclick="care('clean')">🛁</button>
-<button onclick="care('sleep')">😴</button>
+❤️ Carinho
+<div class="progress"><div id="loveBar" class="progress-bar"></div></div>
+<button onclick="giveLove()">❤️ Dar carinho</button>
 </div>
 
 <div class="card">
-<h3>🐣 Roupinhas</h3>
-<button onclick="equip('🎀')">🎀</button>
-<button onclick="equip('🧢')">🧢</button>
-<button onclick="equip('🧣')">🧣</button>
+<h3>🎒 Inventário</h3>
+<div id="inventory"></div>
 </div>
 
 <div class="card">
-<h3>🥚 Ovos</h3>
-<button onclick="hatchEgg()">Chocar ovo</button>
+<h3>🛍️ Loja</h3>
+<button onclick="buy('🎀',50)">🎀 50⭐</button>
+<button onclick="buy('🧸',70)">🧸 70⭐</button>
+<button onclick="buy('⭐️',100)">⭐️ 100⭐</button><br>
+<button onclick="buy('🍎',10)">🍎</button>
+<button onclick="buy('🍐',10)">🍐</button>
+<button onclick="buy('🍊',10)">🍊</button>
+<button onclick="buy('🍋',10)">🍋</button>
+<button onclick="buy('🍏',10)">🍏</button>
+<p class="small">🍎🍐🍊🍋🍏 = comida decorativa</p>
 </div>
 
 </div>
 
 <script>
-let pet = localStorage.getItem("pet");
-let level = Number(localStorage.getItem("level"))||1;
-let xp = Number(localStorage.getItem("xp"))||0;
-let points = Number(localStorage.getItem("points"))||0;
-let eggs = Number(localStorage.getItem("eggs"))||0;
-let accessory = localStorage.getItem("accessory")||"";
+let pets=["🐶","🐱","🐰","🐣"];
+let mainPet=localStorage.getItem("mainPet");
+let babyPet=localStorage.getItem("babyPet");
 
-let food=60,water=60,clean=60,sleepLv=60;
+let points=Number(localStorage.getItem("points"))||100;
+let love=Number(localStorage.getItem("love"))||70;
 
-if(!pet) setup.classList.remove("hidden");
+let accessories=JSON.parse(localStorage.getItem("accessories"))||{};
+let rareAccessory=localStorage.getItem("rareAccessory")||"";
+
+let egg=JSON.parse(localStorage.getItem("egg"))||null;
+let crying=true;
+let lastToyUse=0;
+
+if(!mainPet) setup.classList.remove("hidden");
 else init();
 
-function choosePet(p){pet=p;}
-
-function startGame(){
-  save();
-  init();
-}
+function choosePet(p){mainPet=p}
+function start(){save();init()}
 
 function init(){
-  setup.classList.add("hidden");
-  app.classList.remove("hidden");
-  update();
-  tick();
+setup.classList.add("hidden");
+app.classList.remove("hidden");
+update();
+setInterval(gameTick,1000);
 }
 
-function updatePet(){
-  let emoji = pet;
-  if(pet==="🐣" && level>=2) emoji="🐥";
-  petEmoji.innerText = emoji;
+function gameTick(){
+love=Math.max(0,love-0.05);
+if(rareAccessory) love=Math.min(100,love+0.02);
+updateEgg();
+update();
+}
 
-  let size = 70 + level*20;
-  petEmoji.style.fontSize = size+"px";
+function getEgg(){
+if(egg){alert("Você já tem um ovo");return;}
+let r=Math.random(),type,time;
+if(r<0.6){type="🥚";time=5*60*1000;}
+else if(r<0.9){type="✨🥚";time=60*60*1000;}
+else{type="🌈🥚";time=5*60*60*1000;}
+egg={type,start:Date.now(),time};
+crying=true;
+update();
+}
 
-  accessoryEl.innerText = (pet==="🐣"||pet==="🐥") ? accessory : "";
+function updateEgg(){
+if(!egg)return;
+if(Date.now()-egg.start>=egg.time) crying=false;
+renderInventory();
+}
 
-  if(level>=4) petEmoji.classList.add("glow");
+function hatch(){
+if(Date.now()-egg.start<egg.time){alert("Ainda não chocou");return;}
+let available=pets.filter(p=>p!==mainPet);
+babyPet=available[Math.floor(Math.random()*available.length)];
+egg=null;
+save();
+update();
+}
+
+function giveLove(){
+if(love<90){love+=20;points+=5;}
+update();
+}
+
+function buy(item,cost){
+if(points<cost){alert("Sem pontos");return;}
+points-=cost;
+
+if(["🍎","🍐","🍊","🍋","🍏"].includes(item)){
+foodAnimEl.innerText=item;
+setTimeout(()=>foodAnimEl.innerText="",800);
+}
+else if(item==="🧸"){
+let now=Date.now();
+if(now-lastToyUse>60000){
+love=Math.min(100,love+10);
+lastToyUse=now;
+accessories[mainPet]="🧸";
+}
+}
+else if(item==="🎀"){
+accessories[mainPet]="🎀";
+}
+else if(item==="⭐️"){
+let r=Math.random();
+if(r<0.3){rareAccessory="✨🎀";}
+else if(r<0.6){points+=50;}
+}
+save();update();
+}
+
+function renderInventory(){
+inventory.innerHTML="";
+if(egg){
+let left=Math.ceil((egg.time-(Date.now()-egg.start))/1000);
+inventory.innerHTML=`
+<div class="inventory-item">
+${egg.type} ⏳ ${left}s
+<button onclick="hatch()">Chocar</button>
+</div>`;
+}
 }
 
 function update(){
-  foodBar.style.width=food+"%";
-  waterBar.style.width=water+"%";
-  cleanBar.style.width=clean+"%";
-  sleepBar.style.width=sleepLv+"%";
-
-  levelEl.innerText=level;
-  pointsEl.innerText=points;
-  eggsEl.innerText=eggs;
-
-  updatePet();
-  save();
-}
-
-function care(type){
-  let ok=false;
-  if(type==="food"&&food<80){food+=20;ok=true}
-  if(type==="water"&&water<80){water+=20;ok=true}
-  if(type==="clean"&&clean<80){clean=100;ok=true}
-  if(type==="sleep"&&sleepLv<80){sleepLv=100;ok=true}
-
-  if(ok){
-    points+=5;
-    xp+=10;
-    if(Math.random()<0.2) eggs++;
-    if(xp>=level*50){
-      level++;
-      petEmoji.classList.add("grow");
-      setTimeout(()=>petEmoji.classList.remove("grow"),600);
-      alert("✨ Seu pet cresceu!");
-    }
-  }
-  update();
-}
-
-function equip(item){
-  if(pet==="🐣"||pet==="🐥"){
-    accessory=item;
-    update();
-  }
-}
-
-function hatchEgg(){
-  if(eggs<=0){alert("Sem ovos");return;}
-  eggs--;
-  let r=Math.random();
-  if(r<0.6) points+=20;
-  else if(r<0.9) accessory="🎀";
-  else {points+=100; alert("✨ Ovo raro!");}
-  update();
-}
-
-function tick(){
-  food-=0.2; water-=0.3; clean-=0.1; sleepLv-=0.15;
-  update();
-  setTimeout(tick,5000);
+mainPetEl.innerText=mainPet+(love<30?" 😢":"");
+babyPetEl.innerText=babyPet||"";
+mainAcc.innerText=rareAccessory||accessories[mainPet]||"";
+mainAcc.classList.toggle("glow",!!rareAccessory);
+babyAcc.innerText=accessories[babyPet]||"";
+pointsEl.innerText=points;
+loveBar.style.width=love+"%";
+cryingEgg.classList.toggle("hidden",!egg||!crying);
+renderInventory();
+save();
 }
 
 function save(){
-  localStorage.setItem("pet",pet);
-  localStorage.setItem("level",level);
-  localStorage.setItem("xp",xp);
-  localStorage.setItem("points",points);
-  localStorage.setItem("eggs",eggs);
-  localStorage.setItem("accessory",accessory);
+localStorage.setItem("mainPet",mainPet);
+localStorage.setItem("babyPet",babyPet);
+localStorage.setItem("points",points);
+localStorage.setItem("love",love);
+localStorage.setItem("accessories",JSON.stringify(accessories));
+localStorage.setItem("rareAccessory",rareAccessory);
+localStorage.setItem("egg",JSON.stringify(egg));
 }
 </script>
 
