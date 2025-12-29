@@ -5,238 +5,155 @@
 <title>PetCare 🐾</title>
 
 <style>
-body {
-    font-family: Arial, sans-serif;
-    background: #f6f7fb;
-    padding: 20px;
-    transition: background 0.3s;
+body{
+  font-family:Arial;
+  background:#f6f7fb;
+  padding:20px;
+  transition:background 0.5s;
 }
-
-.hidden { display: none; }
-
-.card {
-    background: white;
-    padding: 16px;
-    border-radius: 16px;
-    margin-bottom: 16px;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+.card{
+  background:#fff;
+  padding:16px;
+  border-radius:16px;
+  margin-bottom:16px;
 }
-
-button {
-    padding: 8px 14px;
-    border: none;
-    border-radius: 10px;
-    background: #ff9aa2;
-    color: white;
-    cursor: pointer;
-    margin: 4px;
+button{
+  padding:8px 12px;
+  border:none;
+  border-radius:10px;
+  background:#ff9aa2;
+  color:#fff;
+  margin:4px;
 }
-
-.progress {
-    background: #ddd;
-    border-radius: 10px;
-    height: 16px;
-    overflow: hidden;
+.progress{
+  background:#ddd;
+  height:14px;
+  border-radius:10px;
 }
-
-.progress-bar {
-    height: 100%;
-    background: #8ed1fc;
+.progress-bar{
+  height:100%;
+  background:#8ed1fc;
 }
-
-.settings {
-    position: fixed;
-    top: 15px;
-    right: 15px;
-    font-size: 22px;
-    cursor: pointer;
+.pet-box{
+  text-align:center;
+  font-size:64px;
+  position:relative;
 }
-
-.pet {
-    font-size: 64px;
-    text-align: center;
-    animation: happy 2s infinite;
+.aura{
+  text-shadow:0 0 15px gold;
 }
-
-.sad {
-    animation: sad 1s infinite;
-}
-
-@keyframes happy {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.05); }
-    100% { transform: scale(1); }
-}
-
-@keyframes sad {
-    0% { transform: translateY(0); }
-    50% { transform: translateY(5px); }
-    100% { transform: translateY(0); }
+.level{
+  font-size:14px;
+  color:#666;
 }
 </style>
 </head>
 
 <body>
 
-<div class="settings" onclick="openSettings()">⚙️</div>
-
-<!-- SETUP -->
-<div id="setup" class="card hidden">
-    <h2>🐣 Crie seu pet</h2>
-
-    <button onclick="selectPet('🐶')">🐶</button>
-    <button onclick="selectPet('🐱')">🐱</button>
-    <button onclick="selectPet('🐰')">🐰</button>
-
-    <p>Cenário:</p>
-    <button onclick="selectScene('#f6f7fb')">Claro</button>
-    <button onclick="selectScene('#dbeafe')">Azul</button>
-
-    <p>Nome:</p>
-    <input id="petNameInput" placeholder="Nome do pet">
-
-    <br><br>
-    <button onclick="finishSetup()">Finalizar</button>
+<div class="card pet-box">
+  <div id="pet"></div>
+  <div class="level">🧬 Nível <span id="level">1</span></div>
+  <div>⭐ Pontos: <span id="points">0</span></div>
 </div>
 
-<!-- APP -->
-<div id="app" class="hidden">
-
-    <div class="card">
-        <div id="petEmoji" class="pet"></div>
-        <h2 id="petTitle"></h2>
-        <p id="petMood">😊 Feliz</p>
-        <p>⭐ Pontos: <span id="points">0</span></p>
-    </div>
-
-    <div class="card">
-        🍖 Fome
-        <div class="progress"><div id="foodBar" class="progress-bar"></div></div>
-        💧 Sede
-        <div class="progress"><div id="waterBar" class="progress-bar"></div></div>
-        🛁 Higiene
-        <div class="progress"><div id="cleanBar" class="progress-bar"></div></div>
-        😴 Sono
-        <div class="progress"><div id="sleepBar" class="progress-bar"></div></div>
-    </div>
-
-    <div class="card">
-        <button onclick="feed()">🍖</button>
-        <button onclick="giveWater()">💧</button>
-        <button onclick="bath()">🛁</button>
-        <button onclick="sleep()">😴</button>
-    </div>
+<div class="card">
+🍖 <div class="progress"><div id="foodBar" class="progress-bar"></div></div>
+💧 <div class="progress"><div id="waterBar" class="progress-bar"></div></div>
+🛁 <div class="progress"><div id="cleanBar" class="progress-bar"></div></div>
+😴 <div class="progress"><div id="sleepBar" class="progress-bar"></div></div>
 </div>
 
-<!-- CONFIG -->
-<div id="settingsPanel" class="card hidden">
-    <h2>⚙️ Configurações</h2>
-    <button onclick="resetApp()">🗑️ Resetar tudo</button>
-    <button onclick="closeSettings()">Voltar</button>
+<div class="card">
+<button onclick="care('food')">🍖</button>
+<button onclick="care('water')">💧</button>
+<button onclick="care('clean')">🛁</button>
+<button onclick="care('sleep')">😴</button>
 </div>
 
 <script>
-let pet = localStorage.getItem("pet");
-let scene = localStorage.getItem("scene");
-let name = localStorage.getItem("name");
-let points = Number(localStorage.getItem("points")) || 0;
+let food=60, water=60, clean=60, sleepLv=60;
+let points=Number(localStorage.getItem("points"))||0;
+let xp=Number(localStorage.getItem("xp"))||0;
+let level=Number(localStorage.getItem("level"))||1;
 
-let food = Number(localStorage.getItem("food")) || 100;
-let water = Number(localStorage.getItem("water")) || 100;
-let clean = Number(localStorage.getItem("clean")) || 100;
-let sleepLv = Number(localStorage.getItem("sleep")) || 100;
+const stages=[
+ {emoji:"🐣",xp:0,bg:"#f6f7fb"},
+ {emoji:"🐥",xp:50,bg:"#e0f2fe"},
+ {emoji:"🐶",xp:150,bg:"#dcfce7"},
+ {emoji:"🦊",xp:300,bg:"#fff7ed"},
+ {emoji:"🐉",xp:600,bg:"#fdf4ff"}
+];
 
-if (!pet) setup.classList.remove("hidden");
-else startApp();
+function update(){
+ foodBar.style.width=food+"%";
+ waterBar.style.width=water+"%";
+ cleanBar.style.width=clean+"%";
+ sleepBar.style.width=sleepLv+"%";
+ pointsEl.innerText=points;
+ levelEl.innerText=level;
 
-function selectPet(p) { pet = p; }
-function selectScene(s) { scene = s; document.body.style.background = s; }
+ pet.innerText=stages[level-1].emoji;
+ document.body.style.background=stages[level-1].bg;
 
-function finishSetup() {
-    name = petNameInput.value || "Meu Pet";
-    saveAll();
-    startApp();
+ pet.classList.toggle("aura",level>=5);
+
+ save();
 }
 
-function startApp() {
-    setup.classList.add("hidden");
-    app.classList.remove("hidden");
-    document.body.style.background = scene || "#f6f7fb";
-    petEmoji.innerText = pet;
-    petTitle.innerText = pet + " " + name;
-    updateUI();
-    tick();
+function care(type){
+ let valid=false;
+ let pointGain=5;
+ let xpGain=10;
+
+ // HABILIDADES POR NÍVEL
+ if(level>=3) pointGain=8;
+ if(level>=4 && (type==="clean"||type==="sleep")) xpGain=15;
+
+ if(type==="food" && food<80){food+=20;valid=true}
+ if(type==="water" && water<80){water+=20;valid=true}
+ if(type==="clean" && clean<80){clean=100;valid=true}
+ if(type==="sleep" && sleepLv<80){sleepLv=100;valid=true}
+
+ if(valid){
+   points+=pointGain;
+   xp+=xpGain;
+   checkEvolution();
+ } else {
+   alert("❌ Seu pet não precisa disso agora");
+ }
+
+ update();
 }
 
-function tick() {
-    food -= 0.2;
-    water -= 0.3;
-    clean -= 0.1;
-    sleepLv -= 0.15;
-
-    checkNeeds();
-    updateUI();
-    saveAll();
-
-    setTimeout(tick, 5000);
+function checkEvolution(){
+ if(level<stages.length && xp>=stages[level].xp){
+   level++;
+   alert("🧬 Evolução desbloqueada!");
+ }
 }
 
-function checkNeeds() {
-    let bad = food < 30 || water < 30 || sleepLv < 30;
-    petEmoji.classList.toggle("sad", bad);
-    petMood.innerText = bad ? "😢 Preciso de cuidado" : "😊 Feliz";
+function tick(){
+ let decay=1;
+ if(level>=2) decay=0.7; // habilidade jovem
 
-    if (bad) notify("Seu pet precisa de você 🐾");
+ food-=0.2*decay;
+ water-=0.3*decay;
+ clean-=0.1*decay;
+ sleepLv-=0.15*decay;
+
+ update();
+ setTimeout(tick,5000);
 }
 
-function notify(msg) {
-    alert(msg); // simulação (vira notificação real no app)
+function save(){
+ localStorage.setItem("points",points);
+ localStorage.setItem("xp",xp);
+ localStorage.setItem("level",level);
 }
 
-function feed() { food = Math.min(100, food + 20); gainPoints(); }
-function giveWater() { water = Math.min(100, water + 20); gainPoints(); }
-function bath() { clean = 100; gainPoints(); }
-function sleep() { sleepLv = 100; gainPoints(); }
-
-function gainPoints() {
-    points += 5;
-    updateUI();
-}
-
-function updateUI() {
-    foodBar.style.width = food + "%";
-    waterBar.style.width = water + "%";
-    cleanBar.style.width = clean + "%";
-    sleepBar.style.width = sleepLv + "%";
-    pointsEl = document.getElementById("points");
-    pointsEl.innerText = points;
-}
-
-function openSettings() {
-    app.classList.add("hidden");
-    settingsPanel.classList.remove("hidden");
-}
-
-function closeSettings() {
-    settingsPanel.classList.add("hidden");
-    app.classList.remove("hidden");
-}
-
-function resetApp() {
-    localStorage.clear();
-    location.reload();
-}
-
-function saveAll() {
-    localStorage.setItem("pet", pet);
-    localStorage.setItem("scene", scene);
-    localStorage.setItem("name", name);
-    localStorage.setItem("points", points);
-    localStorage.setItem("food", food);
-    localStorage.setItem("water", water);
-    localStorage.setItem("clean", clean);
-    localStorage.setItem("sleep", sleepLv);
-}
+tick();
+update();
 </script>
 
 </body>
