@@ -7,70 +7,69 @@
 <style>
 body {
   font-family: Arial, sans-serif;
-  background: #f6f7fb;
-  padding: 20px;
-  transition: background 0.4s;
+  background:#f6f7fb;
+  padding:20px;
 }
 
-.hidden { display: none; }
+.hidden{display:none;}
 
-.card {
-  background: white;
-  padding: 16px;
-  border-radius: 18px;
-  margin-bottom: 16px;
+.card{
+  background:#fff;
+  padding:16px;
+  border-radius:18px;
+  margin-bottom:16px;
 }
 
-button {
-  padding: 10px 14px;
-  border: none;
-  border-radius: 12px;
-  background: #ff9aa2;
-  color: white;
-  margin: 4px;
-  cursor: pointer;
+button{
+  padding:10px 14px;
+  border:none;
+  border-radius:12px;
+  background:#ff9aa2;
+  color:#fff;
+  margin:4px;
 }
 
-.progress {
-  background: #ddd;
-  height: 14px;
-  border-radius: 10px;
-  overflow: hidden;
+.progress{
+  background:#ddd;
+  height:14px;
+  border-radius:10px;
+  overflow:hidden;
 }
 
-.progress-bar {
-  height: 100%;
-  background: #8ed1fc;
+.progress-bar{
+  height:100%;
+  background:#8ed1fc;
 }
 
-.pet-box {
-  text-align: center;
-  position: relative;
+.pet-box{
+  text-align:center;
+  position:relative;
 }
 
-.pet {
-  transition: transform 0.4s;
+.pet{
+  transition:0.4s;
 }
 
-.glow {
-  text-shadow: 0 0 12px gold;
+.grow{
+  animation:grow 0.6s;
 }
 
-.accessory {
-  position: absolute;
-  top: -10px;
-  left: 50%;
-  transform: translateX(-50%);
-  font-size: 28px;
+@keyframes grow{
+  0%{transform:scale(1)}
+  50%{transform:scale(1.3)}
+  100%{transform:scale(1)}
 }
 
-.rare {
-  box-shadow: 0 0 10px gold;
+.glow{
+  text-shadow:0 0 12px gold;
 }
 
-.level {
-  font-size: 14px;
-  color: #777;
+.accessory{
+  position:absolute;
+  top:-5px;
+  left:50%;
+  transform:translateX(-50%);
+  font-size:24px;
 }
 </style>
 </head>
@@ -79,15 +78,13 @@ button {
 
 <!-- SETUP -->
 <div id="setup" class="card hidden">
-  <h2>🐣 Escolha seu pet</h2>
-  <button onclick="choosePet('🐶')">🐶</button>
-  <button onclick="choosePet('🐱')">🐱</button>
-  <button onclick="choosePet('🐰')">🐰</button>
-  <button onclick="choosePet('🐥')">🐥</button>
-  <br><br>
-  <input id="petName" placeholder="Nome do pet">
-  <br><br>
-  <button onclick="startGame()">Começar</button>
+<h2>🐣 Escolha seu pet</h2>
+<button onclick="choosePet('🐶')">🐶</button>
+<button onclick="choosePet('🐱')">🐱</button>
+<button onclick="choosePet('🐰')">🐰</button>
+<button onclick="choosePet('🐣')">🐣</button>
+<br><br>
+<button onclick="startGame()">Começar</button>
 </div>
 
 <!-- APP -->
@@ -96,8 +93,8 @@ button {
 <div class="card pet-box">
   <div id="accessoryEl" class="accessory"></div>
   <div id="petEmoji" class="pet"></div>
-  <div class="level">🧬 Nível <span id="levelEl">1</span></div>
-  ⭐ Pontos: <span id="pointsEl">0</span>
+  <div>🧬 Nível <span id="levelEl">1</span></div>
+  ⭐ <span id="pointsEl">0</span> | 🥚 <span id="eggsEl">0</span>
 </div>
 
 <div class="card">
@@ -114,27 +111,36 @@ button {
 <button onclick="care('sleep')">😴</button>
 </div>
 
+<div class="card">
+<h3>🐣 Roupinhas</h3>
+<button onclick="equip('🎀')">🎀</button>
+<button onclick="equip('🧢')">🧢</button>
+<button onclick="equip('🧣')">🧣</button>
+</div>
+
+<div class="card">
+<h3>🥚 Ovos</h3>
+<button onclick="hatchEgg()">Chocar ovo</button>
+</div>
+
 </div>
 
 <script>
 let pet = localStorage.getItem("pet");
-let name = localStorage.getItem("name");
-let points = Number(localStorage.getItem("points")) || 0;
-let level = Number(localStorage.getItem("level")) || 1;
-let xp = Number(localStorage.getItem("xp")) || 0;
+let level = Number(localStorage.getItem("level"))||1;
+let xp = Number(localStorage.getItem("xp"))||0;
+let points = Number(localStorage.getItem("points"))||0;
+let eggs = Number(localStorage.getItem("eggs"))||0;
+let accessory = localStorage.getItem("accessory")||"";
 
-let food = Number(localStorage.getItem("food")) || 60;
-let water = Number(localStorage.getItem("water")) || 60;
-let clean = Number(localStorage.getItem("clean")) || 60;
-let sleepLv = Number(localStorage.getItem("sleepLv")) || 60;
+let food=60,water=60,clean=60,sleepLv=60;
 
-if (!pet) setup.classList.remove("hidden");
+if(!pet) setup.classList.remove("hidden");
 else init();
 
-function choosePet(p){ pet = p; }
+function choosePet(p){pet=p;}
 
 function startGame(){
-  name = petName.value || "Meu Pet";
   save();
   init();
 }
@@ -142,76 +148,88 @@ function startGame(){
 function init(){
   setup.classList.add("hidden");
   app.classList.remove("hidden");
-  updatePet();
   update();
   tick();
 }
 
 function updatePet(){
-  petEmoji.innerText = pet;
+  let emoji = pet;
+  if(pet==="🐣" && level>=2) emoji="🐥";
+  petEmoji.innerText = emoji;
 
-  let size = 80;
-  if(level>=2) size = 110;
-  if(level>=3) size = 150;
+  let size = 70 + level*20;
+  petEmoji.style.fontSize = size+"px";
+
+  accessoryEl.innerText = (pet==="🐣"||pet==="🐥") ? accessory : "";
+
   if(level>=4) petEmoji.classList.add("glow");
-
-  petEmoji.style.fontSize = size + "px";
 }
 
 function update(){
-  foodBar.style.width = food + "%";
-  waterBar.style.width = water + "%";
-  cleanBar.style.width = clean + "%";
-  sleepBar.style.width = sleepLv + "%";
+  foodBar.style.width=food+"%";
+  waterBar.style.width=water+"%";
+  cleanBar.style.width=clean+"%";
+  sleepBar.style.width=sleepLv+"%";
 
-  pointsEl.innerText = points;
-  levelEl.innerText = level;
+  levelEl.innerText=level;
+  pointsEl.innerText=points;
+  eggsEl.innerText=eggs;
 
   updatePet();
   save();
 }
 
 function care(type){
-  let valid=false;
+  let ok=false;
+  if(type==="food"&&food<80){food+=20;ok=true}
+  if(type==="water"&&water<80){water+=20;ok=true}
+  if(type==="clean"&&clean<80){clean=100;ok=true}
+  if(type==="sleep"&&sleepLv<80){sleepLv=100;ok=true}
 
-  if(type==="food" && food<80){food+=20;valid=true}
-  if(type==="water" && water<80){water+=20;valid=true}
-  if(type==="clean" && clean<80){clean=100;valid=true}
-  if(type==="sleep" && sleepLv<80){sleepLv=100;valid=true}
-
-  if(valid){
-    points += 5;
-    xp += 10;
-    if(xp >= level*50){
+  if(ok){
+    points+=5;
+    xp+=10;
+    if(Math.random()<0.2) eggs++;
+    if(xp>=level*50){
       level++;
-      alert("🧬 Seu pet cresceu!");
+      petEmoji.classList.add("grow");
+      setTimeout(()=>petEmoji.classList.remove("grow"),600);
+      alert("✨ Seu pet cresceu!");
     }
-  } else {
-    alert("❌ Seu pet não precisa disso agora");
   }
+  update();
+}
 
+function equip(item){
+  if(pet==="🐣"||pet==="🐥"){
+    accessory=item;
+    update();
+  }
+}
+
+function hatchEgg(){
+  if(eggs<=0){alert("Sem ovos");return;}
+  eggs--;
+  let r=Math.random();
+  if(r<0.6) points+=20;
+  else if(r<0.9) accessory="🎀";
+  else {points+=100; alert("✨ Ovo raro!");}
   update();
 }
 
 function tick(){
-  food -= 0.2;
-  water -= 0.3;
-  clean -= 0.1;
-  sleepLv -= 0.15;
+  food-=0.2; water-=0.3; clean-=0.1; sleepLv-=0.15;
   update();
-  setTimeout(tick, 5000);
+  setTimeout(tick,5000);
 }
 
 function save(){
   localStorage.setItem("pet",pet);
-  localStorage.setItem("name",name);
-  localStorage.setItem("points",points);
   localStorage.setItem("level",level);
   localStorage.setItem("xp",xp);
-  localStorage.setItem("food",food);
-  localStorage.setItem("water",water);
-  localStorage.setItem("clean",clean);
-  localStorage.setItem("sleepLv",sleepLv);
+  localStorage.setItem("points",points);
+  localStorage.setItem("eggs",eggs);
+  localStorage.setItem("accessory",accessory);
 }
 </script>
 
