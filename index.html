@@ -86,10 +86,10 @@ button {
 <div id="app" class="hidden">
 
 <div class="card pet-box">
-  <div id="accessory" class="accessory"></div>
+  <div id="accessoryEl" class="accessory"></div>
   <div id="petEmoji"></div>
-  <div class="level">🧬 Nível <span id="level">1</span></div>
-  ⭐ Pontos: <span id="points">0</span>
+  <div class="level">🧬 Nível <span id="levelEl">1</span></div>
+  ⭐ Pontos: <span id="pointsEl">0</span>
 </div>
 
 <div class="card">
@@ -110,12 +110,12 @@ button {
 <h3>🛒 Loja</h3>
 <button onclick="buy('🎩',100)">🎩 Chapéu (100)</button>
 <button onclick="buy('🎀',150)">🎀 Laço (150)</button>
-<button onclick="buyRare('👑',500)">👑 Raro</button>
+<button onclick="buyRare('👑',500)">👑 Item raro</button>
 </div>
 
 <div class="card">
 <h3>🎒 Inventário</h3>
-<div id="inventory"></div>
+<div id="inventoryDiv"></div>
 </div>
 
 </div>
@@ -129,7 +129,10 @@ let xp = Number(localStorage.getItem("xp")) || 0;
 let inventory = JSON.parse(localStorage.getItem("inventory")) || [];
 let accessory = localStorage.getItem("accessory") || "";
 
-let food = 60, water = 60, clean = 60, sleepLv = 60;
+let food = Number(localStorage.getItem("food")) || 60;
+let water = Number(localStorage.getItem("water")) || 60;
+let clean = Number(localStorage.getItem("clean")) || 60;
+let sleepLv = Number(localStorage.getItem("sleepLv")) || 60;
 
 const stages = [
   {emoji:"🐣", bg:"#f6f7fb", xp:0},
@@ -150,10 +153,31 @@ function startGame(){
   init();
 }
 
+function applyOfflineDecay(){
+  let last = Number(localStorage.getItem("lastTime"));
+  if(!last) return;
+
+  let now = Date.now();
+  let secondsAway = (now - last) / 1000;
+  let ticks = Math.floor(secondsAway / 5);
+  let decay = level>=2 ? 0.7 : 1;
+
+  food -= ticks * 0.2 * decay;
+  water -= ticks * 0.3 * decay;
+  clean -= ticks * 0.1 * decay;
+  sleepLv -= ticks * 0.15 * decay;
+
+  food = Math.max(food,0);
+  water = Math.max(water,0);
+  clean = Math.max(clean,0);
+  sleepLv = Math.max(sleepLv,0);
+}
+
 function init(){
+  applyOfflineDecay();
   setup.classList.add("hidden");
   app.classList.remove("hidden");
-  petEmoji.innerText = pet;
+  petEmoji.innerText = stages[level-1].emoji;
   accessoryEl.innerText = accessory;
   update();
   tick();
@@ -246,6 +270,11 @@ function save(){
   localStorage.setItem("xp",xp);
   localStorage.setItem("inventory",JSON.stringify(inventory));
   localStorage.setItem("accessory",accessory);
+  localStorage.setItem("food",food);
+  localStorage.setItem("water",water);
+  localStorage.setItem("clean",clean);
+  localStorage.setItem("sleepLv",sleepLv);
+  localStorage.setItem("lastTime",Date.now());
 }
 </script>
 
