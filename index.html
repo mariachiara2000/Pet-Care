@@ -45,8 +45,15 @@ button {
 
 .pet-box {
   text-align: center;
-  font-size: 72px;
   position: relative;
+}
+
+.pet {
+  transition: transform 0.4s;
+}
+
+.glow {
+  text-shadow: 0 0 12px gold;
 }
 
 .accessory {
@@ -54,7 +61,7 @@ button {
   top: -10px;
   left: 50%;
   transform: translateX(-50%);
-  font-size: 32px;
+  font-size: 28px;
 }
 
 .rare {
@@ -76,6 +83,7 @@ button {
   <button onclick="choosePet('🐶')">🐶</button>
   <button onclick="choosePet('🐱')">🐱</button>
   <button onclick="choosePet('🐰')">🐰</button>
+  <button onclick="choosePet('🐥')">🐥</button>
   <br><br>
   <input id="petName" placeholder="Nome do pet">
   <br><br>
@@ -87,7 +95,7 @@ button {
 
 <div class="card pet-box">
   <div id="accessoryEl" class="accessory"></div>
-  <div id="petEmoji"></div>
+  <div id="petEmoji" class="pet"></div>
   <div class="level">🧬 Nível <span id="levelEl">1</span></div>
   ⭐ Pontos: <span id="pointsEl">0</span>
 </div>
@@ -106,18 +114,6 @@ button {
 <button onclick="care('sleep')">😴</button>
 </div>
 
-<div class="card">
-<h3>🛒 Loja</h3>
-<button onclick="buy('🎩',100)">🎩 Chapéu (100)</button>
-<button onclick="buy('🎀',150)">🎀 Laço (150)</button>
-<button onclick="buyRare('👑',500)">👑 Item raro</button>
-</div>
-
-<div class="card">
-<h3>🎒 Inventário</h3>
-<div id="inventoryDiv"></div>
-</div>
-
 </div>
 
 <script>
@@ -126,21 +122,11 @@ let name = localStorage.getItem("name");
 let points = Number(localStorage.getItem("points")) || 0;
 let level = Number(localStorage.getItem("level")) || 1;
 let xp = Number(localStorage.getItem("xp")) || 0;
-let inventory = JSON.parse(localStorage.getItem("inventory")) || [];
-let accessory = localStorage.getItem("accessory") || "";
 
 let food = Number(localStorage.getItem("food")) || 60;
 let water = Number(localStorage.getItem("water")) || 60;
 let clean = Number(localStorage.getItem("clean")) || 60;
 let sleepLv = Number(localStorage.getItem("sleepLv")) || 60;
-
-const stages = [
-  {emoji:"🐣", bg:"#f6f7fb", xp:0},
-  {emoji:"🐥", bg:"#e0f2fe", xp:50},
-  {emoji:"🐶", bg:"#dcfce7", xp:150},
-  {emoji:"🦊", bg:"#fff7ed", xp:300},
-  {emoji:"🐉", bg:"#fdf4ff", xp:600}
-];
 
 if (!pet) setup.classList.remove("hidden");
 else init();
@@ -153,34 +139,23 @@ function startGame(){
   init();
 }
 
-function applyOfflineDecay(){
-  let last = Number(localStorage.getItem("lastTime"));
-  if(!last) return;
-
-  let now = Date.now();
-  let secondsAway = (now - last) / 1000;
-  let ticks = Math.floor(secondsAway / 5);
-  let decay = level>=2 ? 0.7 : 1;
-
-  food -= ticks * 0.2 * decay;
-  water -= ticks * 0.3 * decay;
-  clean -= ticks * 0.1 * decay;
-  sleepLv -= ticks * 0.15 * decay;
-
-  food = Math.max(food,0);
-  water = Math.max(water,0);
-  clean = Math.max(clean,0);
-  sleepLv = Math.max(sleepLv,0);
-}
-
 function init(){
-  applyOfflineDecay();
   setup.classList.add("hidden");
   app.classList.remove("hidden");
-  petEmoji.innerText = stages[level-1].emoji;
-  accessoryEl.innerText = accessory;
+  updatePet();
   update();
   tick();
+}
+
+function updatePet(){
+  petEmoji.innerText = pet;
+
+  let size = 80;
+  if(level>=2) size = 110;
+  if(level>=3) size = 150;
+  if(level>=4) petEmoji.classList.add("glow");
+
+  petEmoji.style.fontSize = size + "px";
 }
 
 function update(){
@@ -191,10 +166,8 @@ function update(){
 
   pointsEl.innerText = points;
   levelEl.innerText = level;
-  petEmoji.innerText = stages[level-1].emoji;
-  document.body.style.background = stages[level-1].bg;
 
-  renderInventory();
+  updatePet();
   save();
 }
 
@@ -207,9 +180,12 @@ function care(type){
   if(type==="sleep" && sleepLv<80){sleepLv=100;valid=true}
 
   if(valid){
-    points += (level>=3 ? 8 : 5);
+    points += 5;
     xp += 10;
-    checkEvolution();
+    if(xp >= level*50){
+      level++;
+      alert("🧬 Seu pet cresceu!");
+    }
   } else {
     alert("❌ Seu pet não precisa disso agora");
   }
@@ -217,49 +193,13 @@ function care(type){
   update();
 }
 
-function checkEvolution(){
-  if(level < stages.length && xp >= stages[level].xp){
-    level++;
-    alert("🧬 Seu pet evoluiu!");
-  }
-}
-
 function tick(){
-  let decay = level>=2 ? 0.7 : 1;
-  food -= 0.2 * decay;
-  water -= 0.3 * decay;
-  clean -= 0.1 * decay;
-  sleepLv -= 0.15 * decay;
+  food -= 0.2;
+  water -= 0.3;
+  clean -= 0.1;
+  sleepLv -= 0.15;
   update();
   setTimeout(tick, 5000);
-}
-
-function buy(item,cost){
-  if(points>=cost && !inventory.includes(item)){
-    points -= cost;
-    inventory.push(item);
-  }
-  update();
-}
-
-function buyRare(item,cost){
-  if(points>=cost && !inventory.includes(item)){
-    points -= cost;
-    inventory.push(item);
-    alert("✨ Item raro desbloqueado!");
-  }
-  update();
-}
-
-function renderInventory(){
-  inventoryDiv.innerHTML="";
-  inventory.forEach(i=>{
-    let b=document.createElement("button");
-    b.innerText=i;
-    if(i==="👑") b.classList.add("rare");
-    b.onclick=()=>{accessory=i; accessoryEl.innerText=i; save();}
-    inventoryDiv.appendChild(b);
-  });
 }
 
 function save(){
@@ -268,13 +208,10 @@ function save(){
   localStorage.setItem("points",points);
   localStorage.setItem("level",level);
   localStorage.setItem("xp",xp);
-  localStorage.setItem("inventory",JSON.stringify(inventory));
-  localStorage.setItem("accessory",accessory);
   localStorage.setItem("food",food);
   localStorage.setItem("water",water);
   localStorage.setItem("clean",clean);
   localStorage.setItem("sleepLv",sleepLv);
-  localStorage.setItem("lastTime",Date.now());
 }
 </script>
 
